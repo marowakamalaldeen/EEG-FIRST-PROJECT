@@ -1,0 +1,20 @@
+#load data
+
+videodata1= np.load ("/content/drive/MyDrive/Data TU PHD DUBLIN/First data/video1_eLORETA.npy") #marowa's drive video1
+videodata= np.load("/content/drive/MyDrive/Data TU PHD DUBLIN/First data/baseline_eLORETA.npy")  #base relax
+videodata2= np.load ("/content/drive/MyDrive/Data TU PHD DUBLIN/First data/video2_eLORETA.npy") #video2
+videodata3= np.load ("/content/drive/MyDrive/Data TU PHD DUBLIN/First data/video3_eLORETA.npy") #video3
+# Load the source space atlas (mapping voxel data)
+map_voxel = np.load("/content/drive/MyDrive/Data TU PHD DUBLIN/LABEL DETAILS/map_voxel.npy")
+region_data = pd.read_csv("/content/drive/MyDrive/Data TU PHD DUBLIN/LABEL DETAILS/results_per_region (MY 101124).csv")
+file_path = ('f"/content/drive/MyDrive/Data TU PHD DUBLIN/subjects Data/{subject_id}/evaluation/{video_type}_eLORETA.npy"')
+#luca's drive
+#pathLuca = "/content/drive/MyDrive/TU Dublin-NN/research/PHD CANDIDATES - AICL research LAB/CURRENT/Carlos Gomez Tapia - PB04482/dataset - full source activation space (31000x11250) for 35 subjects/"
+#fileName = "video1_eLORETA.npy"
+#videodata= np.load (pathLuca + fileName)
+print(videodata1.shape)
+print(len(videodata)) #len of points in brain (31553)
+print(videodata[0])
+print(len(videodata[0]))  #timestamps  (11250=125hz x 90 seconds)
+print(type(videodata))
+#video2data is a list of list (first list 31553 lenghth,each of this cell contains 11250 point,31553 is represented the number of the brain and the 11250 is the point in time  )
