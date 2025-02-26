@@ -1,0 +1,25 @@
+#✅ Sort 31,553 points into regions based on Cerebra ID
+#✅ Compute RMS per time activation for each region
+#✅ Visualize each region's RMS separately and plot them
+# --------------------- Execution ---------------------
+while True:
+    subject_id = input("Enter Subject ID (or type 'exit' to quit): ").strip()
+    if subject_id.lower() == "exit":
+        break
+
+    print("\n🔹 Step 1: Load Video Data 🔹")
+    videodata = load_subject_video_data1()
+
+    print("\n🔹 Step 2: Load Region Mapping Data (CSV) 🔹")
+    region_data = load_region_data1()
+
+    map_voxel = np.random.randint(1, 103, size=31335)  # Simulated voxel-to-region mapping
+
+    try:
+        avg_rms_time_series, region_name_map = compute_rms_time_series2(videodata, map_voxel, region_data)
+        print("\n✅ RMS Computation and Sorting Complete.")
+        plot_rms_time_series2(avg_rms_time_series, region_name_map)
+    except (KeyError, FileNotFoundError, ValueError) as e:
+        print(f"❌ Error: {e}")
+
+    print("\n🔄 Execution completed. Restarting for a new subject.\n")
