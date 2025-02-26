@@ -1,0 +1,20 @@
+!pip install nibabel
+import nibabel as nib
+import matplotlib.pyplot as plt
+import os
+
+# Get the absolute path to the file (replace with your actual file path)
+file_path = '/content/drive/MyDrive/Data TU PHD DUBLIN/LABEL DETAILS/CerebrA_in_t1.mgz' #This can be relative or abosulte path.
+
+# Load the .mgz file
+img = nib.load('/content/drive/MyDrive/Data TU PHD DUBLIN/LABEL DETAILS/CerebrA_in_t1.mgz')
+# Get the data as a numpy array
+data = img.get_fdata()
+
+# Display basic information about the image
+print(f"Data shape: {data.shape}")
+print(f"Data type: {data.dtype}")
+# Plot a slice of the image
+plt.imshow(data[:, :, data.shape[2] // 2], cmap='gray')
+plt.title('Middle Slice')
+plt.show()
