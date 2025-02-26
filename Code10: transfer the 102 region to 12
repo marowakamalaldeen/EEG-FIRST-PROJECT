@@ -1,0 +1,23 @@
+#✅ Sort 31,553 points into regions based on Cerebra ID ✅ Compute RMS per time activation for each region,
+#sort according to the cerebra id to the cube id (Multiple resource theory ID) calculate the region RMS' average and and connect the Region_name to MRT ID Name from csv file.,
+#I want to visualize as time series the MRT where the plot title has the name of all regions which is sorted to same the MRT
+# --------------------- Execution ---------------------
+
+while True:
+    videodata = load_video_data()
+    region_data = load_csv_data()
+    if region_data is None:
+        continue  # Retry if no valid CSV file was provided
+
+    map_voxel = np.random.randint(1, 103, size=31553)  # Simulated voxel-to-region mapping
+
+    try:
+        avg_rms_per_mrt, mwl_index, mrt_regions_map, mrt_name_map = compute_rms_time_series3(videodata, map_voxel, region_data)
+        print("RMS Computation and Sorting Complete.")
+        plot_mrt_time_series3(avg_rms_per_mrt, mwl_index, mrt_regions_map, mrt_name_map)
+    except (KeyError, FileNotFoundError, ValueError) as e:
+        print(f"❌ Error: {e}")
+
+    cont = input("Do you want to process another dataset? (yes/no): ").strip().lower()
+    if cont != 'yes':
+        break
