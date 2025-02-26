@@ -1,4 +1,82 @@
+
 #Subject Loop Cerebra ID Loop Time voxel activation Loop
+
+# Validate required columns exist
+if "Cerebra_ID" not in region_data.columns or "Region_name" not in region_data.columns:
+    raise ValueError("CSV file must contain 'Cerebra_ID' and 'Region_name' columns.")
+
+# Create mapping from Cerebra_ID to Region_name
+mapping_region_id_to_name = region_data.set_index("Cerebra_ID")["Region_name"].to_dict()
+# --------------------- Helper Functions ---------------------
+
+def load_subject_video_data(subject_id, video_type):
+    """
+    Load brain activation data for a given subject and video type.
+
+    Parameters:
+        subject_id (str): Subject ID (e.g., 'NDARZY502FAG')
+        video_type (str): Video type (e.g., "baseline", "video1", "video2", "video3")
+
+    Returns:
+        np.ndarray: Brain voxel activation data.
+    """
+    file_path = f"/content/drive/MyDrive/Data TU PHD DUBLIN/subjects Data/{subject_id}/evaluation/{video_type}_eLORETA.npy"
+    return np.load(file_path)
+
+
+def get_number_of_voxel_per_region(cerebra_id):
+    """
+    Get the number of voxels for a given cerebral region (Cerebra ID) and its region name.
+
+    Parameters:
+        cerebra_id (int): The ID of the cerebral region.
+
+    Returns:
+        tuple: (voxel_count (int), region_name (str))
+    """
+    voxel_count = np.sum(map_voxel == cerebra_id)  # Count occurrences of the Cerebra ID
+    region_name = mapping_region_id_to_name.get(cerebra_id, "Unknown Region")
+    return voxel_count, region_name
+
+
+def plot_voxel_activation_for_region(time_location, cerebra_id, video_data):
+    """
+    Plot voxel activation histograms for the selected region and time location,
+    for each video type in video_data.
+
+    Parameters:
+        time_location (int): The time index to analyze.
+        cerebra_id (int): The Cerebra ID for the region of interest.
+        video_data (dict): Dictionary of video datasets.
+    """
+    # Get indices for voxels in the desired region.
+    region_indices = np.where(map_voxel == cerebra_id)[0]
+
+    plt.figure(figsize=(12, 5))
+    for video_label, data in video_data.items():
+        # Restrict activation data to the region of interest and given time
+        voxel_activation = data[region_indices, time_location]
+        plt.hist(voxel_activation, bins=100, alpha=0.5, label=f"{video_label} - Time {time_location}")
+
+    plt.title(f"Voxel Activation Distribution for Region {cerebra_id} at Time {time_location}")
+    plt.xlabel("Voxel Activation Value")
+    plt.ylabel("Frequency")
+    plt.legend()
+    plt.show()
+
+
+def plot_number_of_voxel_per_region():
+    """
+    Plot a histogram showing the overall voxel counts per cortical region.
+    """
+    unique_regions = np.unique(map_voxel)
+    plt.figure(figsize=(20, 5))
+    plt.hist(map_voxel, bins=len(unique_regions), color="royalblue", alpha=0.7)
+    plt.title("Number of Voxels per Cortical Region")
+    plt.xlabel("Cortical Regions")
+    plt.ylabel("Number of Voxels")
+    plt.show()
+
 
 # --------------------- Main Loop ---------------------
 
