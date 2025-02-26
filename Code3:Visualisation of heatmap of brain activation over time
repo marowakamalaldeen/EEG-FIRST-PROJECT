@@ -1,0 +1,10 @@
+#Visualisation of heatmap of brain activation over time
+fig = plt.figure(figsize=(15,10))
+ax = fig.gca()
+ax.imshow(videodata)
+plt.tight_layout()
+plt.xlabel('X-axis', fontsize=10)
+plt.ylabel('Y-axis', fontsize=10)
+plt.title('Heat map of brain activation over time')
+plt.xticks(rotation=90)
+plt.show()
