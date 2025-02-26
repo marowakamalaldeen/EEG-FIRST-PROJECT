@@ -1,0 +1,46 @@
+#Details of each video per subject
+def load_subject_video_data(subject_id, video_type):
+    """
+    Load brain activation data for a given subject and video type.
+    Parameters:
+        subject_id (str): Subject ID (e.g., 'NDARZY502FAG')
+        video_type (str): Video type (e.g., "baseline", "video1", "video2", "video3")
+
+    Returns:
+        np.ndarray: Brain voxel activation data.
+    """
+    file_path = f"/content/drive/MyDrive/Data TU PHD DUBLIN/subjects Data/{subject_id}/evaluation/{video_type}_eLORETA.npy"
+    return np.load(file_path)
+
+def print_video_details(video, video_label):
+    """
+    Print details for a video dataset.
+
+    Parameters:
+        video (np.ndarray): The video data array.
+        video_label (str): Label indicating which video (e.g., 'baseline', 'video1', etc.)
+    """
+    print(f"--- {video_label} ---")
+    print("Number of brain points:", len(video))          # e.g., 31553 points
+    print("First data point:", video[0])
+    print("Number of timestamps in first point:", len(video[0]))  # e.g., 11250 timestamps
+    print("Data type of video:", type(video))
+    print()
+
+
+# enter a subject ID manually
+subject_id = input("Enter Subject ID (e.g., NDARZY502FAG): ").strip()
+
+# List of video types to load for the subject
+video_types = ["baseline", "video1", "video2", "video3"]
+
+print(f"\n==== Details for Subject: {subject_id} ====")
+
+# Loop over each video type, load the video, and print its details
+for video_type in video_types:
+    try:
+        video = load_subject_video_data(subject_id, video_type)
+        print_video_details(video, video_type.capitalize())
+    except Exception as e:
+        print(f"Error loading {video_type} for subject {subject_id}: {e}")
+        print()
