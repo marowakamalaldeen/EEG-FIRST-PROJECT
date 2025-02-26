@@ -1,0 +1,372 @@
+#All function
+def load_subject_video_data(subject_id, video_type):
+    """
+    Load brain activation data for a given subject and video type.
+    """
+    file_path = f"/content/drive/MyDrive/Data TU PHD DUBLIN/subjects Data/{subject_id}/evaluation/{video_type}.npy"
+    print(f"🔍 Checking file path: {file_path}")  # Debugging print
+    if not os.path.exists(file_path):
+        print(f"❌ Warning: File not found for subject {subject_id}, video type {video_type}. Returning dummy data.")
+        return np.random.randn(31335, 11250)  # Dummy fallback data
+    return np.load(file_path)
+
+def compute_rms_time_series1(videodata, map_voxel, region_data):
+    """
+    Compute the RMS for a given video dataset across all time locations,
+    sorting 31,553 points into regions based on Cerebra ID,
+    calculating RMS per time activation for each region,
+    and visualizing them separately over time.
+    """
+    if "Cerebra_ID" not in region_data.columns or "Region_name" not in region_data.columns:
+        raise ValueError("CSV file must contain 'Cerebra_ID' and 'Region_name' columns.")
+
+    valid_cerebra_ids = set(region_data["Cerebra_ID"].unique())
+    region_name_map = region_data.set_index("Cerebra_ID")["Region_name"].to_dict()
+
+    avg_rms_time_series = {region: np.zeros(videodata.shape[1]) for region in valid_cerebra_ids}
+    count_voxels = {region: np.zeros(videodata.shape[1]) for region in valid_cerebra_ids}
+
+    for time_location in range(videodata.shape[1]):
+        videodata_selected = videodata[:, time_location]
+        voxel_rms = np.sqrt(videodata_selected**2)
+
+        for region in valid_cerebra_ids:
+            region_indices = np.where(map_voxel == region)[0]
+            if len(region_indices) == 0:
+                continue
+
+            rms_values = voxel_rms[region_indices]
+            avg_rms_time_series[region][time_location] += np.sum(rms_values)
+            count_voxels[region][time_location] += len(rms_values)
+
+    for region in valid_cerebra_ids:
+        valid_indices = count_voxels[region] > 0
+        avg_rms_time_series[region][valid_indices] /= count_voxels[region][valid_indices]
+
+    return avg_rms_time_series, region_name_map
+
+def plot_rms_time_series1(avg_rms_time_series, region_name_map, subject_id, video_type):
+    """
+    Visualize each region's RMS separately in 102 diagrams with both Region Name and Cerebra ID,
+    and include Subject ID and Video Type in titles.
+    """
+    for region, rms_values in avg_rms_time_series.items():
+        region_name = region_name_map.get(region, f"Region {region}")
+        plt.figure(figsize=(10, 5))
+        plt.plot(range(len(rms_values)), rms_values, label=f"{region_name} (ID: {region})")
+        plt.xlabel("Time Activation (0 - 11250)")
+        plt.ylabel("RMS Value")
+        plt.title(f"{region_name} (ID: {region})\nSubject: {subject_id} | Video Type: {video_type}")
+        plt.legend()
+        plt.grid(axis="y", linestyle="--", alpha=0.6)
+        plt.show()
+
+
+
+
+def load_subject_video_data1():
+    """
+    Load brain activation data for a given subject and video type.
+    Allows user to enter the file path manually.
+    """
+    file_path = input("Enter the full file path for the video data (.npy file): ").strip()
+
+    if not os.path.exists(file_path):
+        print(f"❌ Warning: File not found at {file_path}. Returning dummy data.")
+        return np.random.randn(31335, 11250)  # Dummy fallback data
+    
+    # Check if the provided path is a directory. If so, list the .npy files within it.
+    if os.path.isdir(file_path):
+        npy_files = [f for f in os.listdir(file_path) if f.endswith(".npy")]
+        if npy_files:
+            print("Found the following .npy files in the directory:")
+            for i, file in enumerate(npy_files):
+                print(f"{i + 1}. {file}")
+            file_index = int(input(f"Select the file to load (1-{len(npy_files)}): ")) - 1
+            file_path = os.path.join(file_path, npy_files[file_index])
+        else:
+            print(f"❌ Error: No .npy files found in the directory {file_path}. Returning dummy data.")
+            return np.random.randn(31335, 11250)
+            
+    return np.load(file_path)
+
+def load_region_data1():
+    """
+    Load the region mapping data (CSV file) manually entered by the user.
+    """
+    csv_path = input("Enter the full file path for the region CSV file: ").strip()
+
+    if not os.path.exists(csv_path):
+        raise FileNotFoundError(f"❌ Error: CSV file not found at {csv_path}. Please check the path.")
+
+    return pd.read_csv(csv_path)
+
+def compute_rms_time_series2(videodata, map_voxel, region_data):
+    """
+    Sorts 31,553 points into regions based on Cerebra ID,
+    Compute the RMS for a given video dataset across all time locations.
+    calculating RMS per time activation for each region,
+    and visualizing them separately over time.
+    """
+    required_columns = {"Cerebra_ID", "Region_name"}
+    missing_columns = required_columns - set(region_data.columns)
+
+    if missing_columns:
+        raise ValueError(f"❌ CSV file must contain the following columns: {missing_columns}")
+
+    valid_cerebra_ids = set(region_data["Cerebra_ID"].unique())
+    region_name_map = region_data.set_index("Cerebra_ID")["Region_name"].to_dict()
+
+    avg_rms_time_series = {region: np.zeros(videodata.shape[1]) for region in valid_cerebra_ids}
+    count_voxels = {region: np.zeros(videodata.shape[1]) for region in valid_cerebra_ids}
+
+    for time_location in range(videodata.shape[1]):
+        videodata_selected = videodata[:, time_location]
+        voxel_rms = np.sqrt(videodata_selected**2)
+
+        for region in valid_cerebra_ids:
+            region_indices = np.where(map_voxel == region)[0]
+            if len(region_indices) == 0:
+                continue
+
+            rms_values = voxel_rms[region_indices]
+            avg_rms_time_series[region][time_location] += np.sum(rms_values)
+            count_voxels[region][time_location] += len(rms_values)
+
+    for region in valid_cerebra_ids:
+        valid_indices = count_voxels[region] > 0
+        avg_rms_time_series[region][valid_indices] /= count_voxels[region][valid_indices]
+
+    return avg_rms_time_series, region_name_map
+
+def plot_rms_time_series2(avg_rms_time_series, region_name_map):
+    """
+    Visualize each region's RMS separately in 102 diagrams with both Region Name and Cerebra ID.
+    """
+    for region, rms_values in avg_rms_time_series.items():
+        region_name = region_name_map.get(region, f"Region {region}")
+        plt.figure(figsize=(10, 5))
+        plt.plot(range(len(rms_values)), rms_values, label=f"{region_name} (ID: {region})")
+        plt.xlabel("Time Activation (0 - 11250)")
+        plt.ylabel("RMS Value")
+        plt.title(f"{region_name} (ID: {region})")
+        plt.legend()
+        plt.grid(axis="y", linestyle="--", alpha=0.6)
+        plt.show()
+
+
+
+
+def load_video_data():
+    """
+    Manually enter the file path to load brain activation data.
+    """
+    file_path = input("Enter the full file path for the video data (.npy file): ").strip()
+    if not os.path.exists(file_path):
+        print(f"❌ Warning: File not found at {file_path}. Returning dummy data.")
+        return np.random.randn(31335, 11250)  # Dummy fallback data
+    return np.load(file_path)
+
+def load_csv_data():
+    """
+    Manually enter the file path to load the CSV file.
+    """
+    file_path = input("Enter the full file path for the CSV file: ").strip()
+    if not os.path.exists(file_path):
+        print(f"❌ Warning: File not found at {file_path}. Please enter a valid path.")
+        return None
+    return pd.read_csv(file_path)
+
+def compute_rms_time_series3(videodata, map_voxel, region_data):
+    """
+    Compute the RMS for each region along all 11250 time activations,
+    sort each region to its corresponding MRT based on the CSV file,
+    compute the average RMS per MRT, and prepare data for visualization.
+    """
+    required_columns = {"Cerebra_ID", "Region_name", "Multiple resource theory ID", "MRT ID Name"}
+    missing_columns = required_columns - set(region_data.columns)
+    if missing_columns:
+        raise ValueError(f"CSV file must contain the following columns: {missing_columns}")
+
+    valid_cerebra_ids = set(region_data["Cerebra_ID"].unique())
+    region_name_map = region_data.set_index("Cerebra_ID")["Region_name"].to_dict()
+    mrt_id_map = region_data.set_index("Cerebra_ID")["Multiple resource theory ID"].to_dict()
+    mrt_name_map = region_data.set_index("Multiple resource theory ID")["MRT ID Name"].to_dict()
+
+    mrt_regions_map = {}
+    rms_per_mrt = {}
+    avg_rms_per_mrt = {}
+
+    for cerebra_id, mrt_id in mrt_id_map.items():
+        region_name = region_name_map.get(cerebra_id, f"Region {cerebra_id}")
+        if mrt_id not in mrt_regions_map:
+            mrt_regions_map[mrt_id] = []
+        mrt_regions_map[mrt_id].append(region_name)
+
+    rms_per_region = {cerebra_id: np.sqrt(np.mean(videodata[map_voxel == cerebra_id]**2, axis=0)) for cerebra_id in valid_cerebra_ids}
+
+    for cerebra_id, mrt_id in mrt_id_map.items():
+        if mrt_id not in rms_per_mrt:
+            rms_per_mrt[mrt_id] = []
+        rms_per_mrt[mrt_id].append(rms_per_region.get(cerebra_id, np.zeros(11250)))
+
+    for mrt_id, rms_values_list in rms_per_mrt.items():
+        avg_rms_per_mrt[mrt_id] = np.mean(rms_values_list, axis=0)
+
+    mwl_index = np.sum(list(avg_rms_per_mrt.values()), axis=0)
+
+    return avg_rms_per_mrt, mwl_index, mrt_regions_map, mrt_name_map
+
+def plot_mrt_time_series3(rms_per_mrt, mwl_index, mrt_regions_map, mrt_name_map):
+    """
+    Plot the average time series for each MRT ID separately in red,
+    and plot the overall average RMS in green.
+    """
+    for mrt_id, avg_rms_values in rms_per_mrt.items():
+        mrt_name = mrt_name_map.get(mrt_id, "Unknown MRT Name")
+        regions_str = ", ".join(mrt_regions_map.get(mrt_id, []))
+
+        plt.figure(figsize=(16, 5))
+        plt.plot(range(11250), avg_rms_values, color='red', label=f"{mrt_name} (MRT ID {mrt_id})")
+        plt.xlabel("Time (0 - 11250)")
+        plt.ylabel("Average RMS Value")
+        plt.title(f"Average RMS for {mrt_name} (MRT ID {mrt_id})\nRegions: {regions_str}")
+        plt.legend(loc='upper right', fontsize=8)
+        plt.grid(axis="y", linestyle="--", alpha=0.6)
+        plt.show()
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(range(11250), mwl_index, color='green', label="MWL Index ")
+    plt.xlabel("Time (0 - 11250)")
+    plt.ylabel("Sum of Averages of RMS of cortical regions")
+    plt.title("Mental Workload Index")
+    plt.legend()
+    plt.grid(axis="y", linestyle="--", alpha=0.6)
+    plt.show()
+
+
+
+
+
+
+
+def load_subject_video_data(subject_id, video_type):
+    """
+    Load brain activation data for a given subject and video type, handling missing files gracefully.
+    """
+    file_path = f"/content/drive/MyDrive/Data TU PHD DUBLIN/subjects Data/{subject_id}/evaluation/{video_type}.npy"
+    print(f"🔍 Checking file path: {file_path}")
+
+    if not os.path.exists(file_path):
+        print(f"❌ Warning: File not found for subject {subject_id}, video type {video_type}. Returning dummy data.")
+        return np.random.randn(31553, 11250)  # Dummy fallback data
+
+    return np.load(file_path)
+
+def load_subject_video_data(subject_id, video_type):
+    """
+    Load brain activation data for a given subject and video type.
+    """
+    file_path = f"/content/drive/MyDrive/Data TU PHD DUBLIN/subjects Data/{subject_id}/evaluation/{video_type}_eLORETA.npy"
+
+    print(f"🔍 Checking file path: {file_path}")  # Debugging print
+
+    if not os.path.exists(file_path):
+        print(f"❌ Warning: File not found for subject {subject_id}, video type {video_type}. Returning dummy data.")
+        return np.random.randn(31335, 11250)  # Dummy fallback data
+
+    return np.load(file_path)
+
+# Validate required columns exist
+if "Cerebra_ID" not in region_data.columns or "Region_name" not in region_data.columns:
+    raise ValueError("CSV file must contain 'Cerebra_ID' and 'Region_name' columns.")
+
+# Create mapping from Cerebra_ID to Region_name
+mapping_region_id_to_name = region_data.set_index("Cerebra_ID")["Region_name"].to_dict()
+# --------------------- Helper Functions ---------------------
+
+def load_subject_video_data(subject_id, video_type):
+    """
+    Load brain activation data for a given subject and video type.
+
+    Parameters:
+        subject_id (str): Subject ID (e.g., 'NDARZY502FAG')
+        video_type (str): Video type (e.g., "baseline", "video1", "video2", "video3")
+
+    Returns:
+        np.ndarray: Brain voxel activation data.
+    """
+    file_path = f"/content/drive/MyDrive/Data TU PHD DUBLIN/subjects Data/{subject_id}/evaluation/{video_type}_eLORETA.npy"
+    return np.load(file_path)
+
+
+def load_subject_video_data(subject_id, video_type):
+    """
+    Load brain activation data for a given subject and video type.
+    """
+    file_path = f"/content/drive/MyDrive/Data TU PHD DUBLIN/subjects Data/{subject_id}/evaluation/{video_type}.npy"
+
+    # Debugging print to check the file path
+    print(f"🔍 Checking file path: {file_path}")
+
+    if not os.path.exists(file_path):
+        print(f"❌ Warning: File not found for subject {subject_id}, video type {video_type}. Returning dummy data.")
+        return np.random.randn(31553, 11250)  # Dummy fallback data
+
+    return np.load(file_path)
+
+
+def get_number_of_voxel_per_region(cerebra_id):
+    """
+    Get the number of voxels for a given cerebral region (Cerebra ID) and its region name.
+
+    Parameters:
+        cerebra_id (int): The ID of the cerebral region.
+
+    Returns:
+        tuple: (voxel_count (int), region_name (str))
+    """
+    voxel_count = np.sum(map_voxel == cerebra_id)  # Count occurrences of the Cerebra ID
+    region_name = mapping_region_id_to_name.get(cerebra_id, "Unknown Region")
+    return voxel_count, region_name
+
+
+def plot_voxel_activation_for_region(time_location, cerebra_id, video_data):
+    """
+    Plot voxel activation histograms for the selected region and time location,
+    for each video type in video_data.
+
+    Parameters:
+        time_location (int): The time index to analyze.
+        cerebra_id (int): The Cerebra ID for the region of interest.
+        video_data (dict): Dictionary of video datasets.
+    """
+    # Get indices for voxels in the desired region.
+    region_indices = np.where(map_voxel == cerebra_id)[0]
+
+    plt.figure(figsize=(12, 5))
+    for video_label, data in video_data.items():
+        # Restrict activation data to the region of interest and given time
+        voxel_activation = data[region_indices, time_location]
+        plt.hist(voxel_activation, bins=100, alpha=0.5, label=f"{video_label} - Time {time_location}")
+
+    plt.title(f"Voxel Activation Distribution for Region {cerebra_id} at Time {time_location}")
+    plt.xlabel("Voxel Activation Value")
+    plt.ylabel("Frequency")
+    plt.legend()
+    plt.show()
+
+
+def plot_number_of_voxel_per_region():
+    """
+    Plot a histogram showing the overall voxel counts per cortical region.
+    """
+    unique_regions = np.unique(map_voxel)
+    plt.figure(figsize=(20, 5))
+    plt.hist(map_voxel, bins=len(unique_regions), color="royalblue", alpha=0.7)
+    plt.title("Number of Voxels per Cortical Region")
+    plt.xlabel("Cortical Regions")
+    plt.ylabel("Number of Voxels")
+    plt.show()
+
+
