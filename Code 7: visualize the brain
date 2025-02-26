@@ -1,0 +1,5 @@
+# visualize the brain
+import numpy as np
+from Cerebra_aatlas_python.cerebra_atlas_python.cerebra import CerebrA
+cerebra = CerebrA()
+cerebra.orthoview()
