@@ -277,6 +277,9 @@ def load_subject_video_data(subject_id, video_type):
 
     return np.load(file_path)
 
+
+
+
 # Validate required columns exist
 if "Cerebra_ID" not in region_data.columns or "Region_name" not in region_data.columns:
     raise ValueError("CSV file must contain 'Cerebra_ID' and 'Region_name' columns.")
@@ -299,21 +302,6 @@ def load_subject_video_data(subject_id, video_type):
     file_path = f"/content/drive/MyDrive/Data TU PHD DUBLIN/subjects Data/{subject_id}/evaluation/{video_type}_eLORETA.npy"
     return np.load(file_path)
 
-
-def load_subject_video_data(subject_id, video_type):
-    """
-    Load brain activation data for a given subject and video type.
-    """
-    file_path = f"/content/drive/MyDrive/Data TU PHD DUBLIN/subjects Data/{subject_id}/evaluation/{video_type}.npy"
-
-    # Debugging print to check the file path
-    print(f"🔍 Checking file path: {file_path}")
-
-    if not os.path.exists(file_path):
-        print(f"❌ Warning: File not found for subject {subject_id}, video type {video_type}. Returning dummy data.")
-        return np.random.randn(31553, 11250)  # Dummy fallback data
-
-    return np.load(file_path)
 
 
 def get_number_of_voxel_per_region(cerebra_id):
